@@ -193,8 +193,23 @@ static void des_apply_round(des_t *des, uint32_t *left, uint32_t *right, int rou
     *left = temp;
 }
 
+#define LITTLE_ENDIAN ('\x01\x23\x45\x67'==0x01234567)
+
+#if LITTLE_ENDIAN
+static void swap_endianness(uint64_t *val)
+{
+    uint64_t temp = *val;
+    temp = temp << 8 & 0xFF00FF00FF00FF00ULL | temp >> 8 & 0x00FF00FF00FF00FFULL;
+    temp = temp << 16 & 0xFFFF0000FFFF0000ULL | temp >> 16 & 0x0000FFFF0000FFFFULL;
+    *val = temp << 32 | temp >> 32;
+}
+#endif
+
 void des_init(des_t *des, uint64_t key, char mode)
 {
+#if LITTLE_ENDIAN
+    swap_endianness(&key);
+#endif
     des->key = key;
     des->mode = mode;
     des_key_schedule(des);
@@ -220,6 +235,9 @@ void des_setup(des_t *des, char mode)
 void des_transform_block(des_t *des, void *src, void *dst)
 {
     uint64_t block = *(uint64_t*)src;
+#if LITTLE_ENDIAN
+    swap_endianness(&block);
+#endif
     // 1] apply initial permutation
     block = permute64(block, 64, initial_permutation, 64);
     // 2] split permuted block into L and R sub-blocks
@@ -233,5 +251,8 @@ void des_transform_block(des_t *des, void *src, void *dst)
     block = (uint64_t)right << 32 | (uint64_t)left;
     // 6] apply final permutation
     block = permute64(block, 64, final_permutation, 64);
+#if LITTLE_ENDIAN
+    swap_endianness(&block);
+#endif
     *(uint64_t*)dst = block;
 }
