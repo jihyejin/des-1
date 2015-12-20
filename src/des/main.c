@@ -219,5 +219,6 @@ int main(int argc, char *argv[])
     fwrite(buf_ptr, 1, remain, dst);
     fclose(src);
     fclose(dst);
+    des_deinit(&des);
     return 0;
 }
