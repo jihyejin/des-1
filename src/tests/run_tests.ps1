@@ -14,6 +14,7 @@ Function Transform([string]$mode, [string]$src, [string]$dst)
 Function RunTests
 {
   $files = @(
+    "0b.txt",
     "6b.txt",
     "17b.txt",
     "1337b.txt",
