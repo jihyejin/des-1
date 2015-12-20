@@ -218,6 +218,28 @@ void des_init(des_t *des, uint64_t key, char mode)
 void des_deinit(des_t *des)
 { memset(des, 0, sizeof(des_t)); }
 
+int des_verify_key(uint64_t *key, int fix)
+{
+    uint8_t *key_bytes = key;
+    int par;
+    for (int i = 0; i<8; i++)
+    {
+        par = 0;
+        for (int j = 0; j<64; j++)
+        {
+            if (key_bytes[i] & 1 << j)
+                par = !par;
+        }
+        if (!par)
+        {
+            if (!fix)
+                return 1;
+            key_bytes[i] ^= 1;
+        }
+    }
+    return 0;
+}
+
 void des_setup(des_t *des, char mode)
 {
     if (des->mode==mode)
